@@ -259,6 +259,15 @@ void GazeboSystem::registerJoints(
         if (!std::isnan(initial_position)) {
           this->dataPtr->joint_position_cmd_[j] = initial_position;
         }
+        // Below is a workaround to deal with https://github.com/UniversalRobots/Universal_Robots_ROS2_Gazebo_Simulation/issues/19 
+        // Per discussion in:
+        // - https://github.com/ros-controls/gazebo_ros2_control/issues/54#issuecomment-890160708 
+        // - https://github.com/ros-controls/gazebo_ros2_control/pull/44#discussion_r565177746
+        // - https://github.com/ros-controls/gazebo_ros2_control/pull/44#issuecomment-772189846
+        //   "Currently, I created an additional gazebo plugin to help calling SetParam("fmax", 0, <joint-force-limit>) 
+        //    inside the Load() function, so that when joint_limit_interface is ready, I can simply remove my own plugin"
+        // At first we do a test with an arbitrary force limit of 1e6
+        this->dataPtr->sim_joints_[j]->SetParam("fmax", 0, 1000000.0);
       }
       // independently of existence of command interface set initial value if defined
       if (!std::isnan(initial_position)) {
